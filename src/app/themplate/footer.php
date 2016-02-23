@@ -36,7 +36,7 @@
 	  				idToNumber = pageOffsetAttrId.match( /\d{1,}$/i );
 	  				pageOffsetId = Number( idToNumber[0] );
 					$.ajax( {
-						url: "scroll.php",
+						url: "/wall/scroll",
 						type: "post",
 						data: { offset:pageOffsetId, action:'scroll' },
 						success: function(data){

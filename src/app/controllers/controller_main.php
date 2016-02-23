@@ -5,8 +5,6 @@ class Controller_Main extends Controller {
 
 	public $data;
 
-	public $path;
-
 	private $db_user;
 
 	private static $controller_main = null;
@@ -14,11 +12,6 @@ class Controller_Main extends Controller {
 	function __construct() {
 		parent::__construct();
 		$this->db_user = new Db_User();
-		$this->path = array(
-			'fb' => FB_URL_AUTH ."?client_id=".FB_CLIENT_ID."&redirect_uri=".urlencode(FB_REDIRECT)."&response_type=code",
-			'go' => '#',
-			'vk' => '#',
-		);
 
 	}
 
@@ -31,12 +24,12 @@ class Controller_Main extends Controller {
 				if ( isset( $accessToken ) ) {
 					// Logged in!
 					$_SESSION['access_token'] = (string) $accessToken;
-					if( is_object( $user_data = $this->check_user_auth() ) ){
-						$_SESSION['author_id'] = $user_data->user_id;
-						$_SESSION['author_name'] = $user_data->user_name;
+					$user_data = $this->check_user_auth();
+					if( is_array( $user_data ) ) {
+						$_SESSION['author_id'] = $user_data['user_id'];
+						$_SESSION['author_name'] = $user_data['user_name'];
 					}
-
-					exit('<META HTTP-EQUIV="refresh" CONTENT="0; url=/chat">');
+					exit('<META HTTP-EQUIV="refresh" CONTENT="0; url=/wall">');
 					// Now you can redirect to another page and use the
 					// access token from $_SESSION['access_token']
 				}
@@ -46,12 +39,20 @@ class Controller_Main extends Controller {
 			$this->view->generate( 'register.php', 'login_button.php', $this->data );
 			$this->view->generate( 'footer.php' );
 		} else {
-			header( 'Location: /chat' );
+			header( 'Location: /wall' );
 		}
 
 	}
 
-	public function get_data($token) {	
+	public function action_logout() {
+		if( isset( $_GET['action'] ) && ! empty( $_SESSION['access_token'] ) ) {
+			if( 'logout' == $_GET['action'] ) 
+				unset( $_SESSION['access_token'], $_SESSION['author_id'],  $_SESSION['author_name'] );
+				header( 'Location: /' );
+		}
+	}
+
+	public function get_data( $token ) {	
 		$ku = curl_init();	
 		$query = "access_token=". $token ;
 		curl_setopt( $ku, CURLOPT_URL, FB_GET_DATA."?".$query );
@@ -67,7 +68,6 @@ class Controller_Main extends Controller {
 	public function get_token( $code ) {
 		$ku = curl_init();	
 		$query = "client_id=" . FB_CLIENT_ID . "&redirect_uri=" . urlencode( FB_REDIRECT ) . "&client_secret=" . FB_SECRET . "&code=" . $code;	
-		var_dump($query);
 		curl_setopt( $ku, CURLOPT_URL, FB_TOKEN . "?" . $query );
 		curl_setopt( $ku, CURLOPT_RETURNTRANSFER, TRUE );
 		curl_setopt( $ku, CURLOPT_SSL_VERIFYPEER, false );
