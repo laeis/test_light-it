@@ -5,7 +5,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
     
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/lib/bootstrap/js/bootstrap.min.js"></script>
     <script>
     ( function( $ ) {
     	$(document).ready( function(){
@@ -18,7 +18,7 @@
   				$.ajax( {
 					url: "scroll.php",
 					type: "post",
-					data: { offset:pageOffsetId, action: action },
+					data: { offset:pageOffsetId, action:action },
 					success: function(data){
 						$(".container_scroll").append( data ).fadeIn();
 						if( typeof download !== "undefined" )
@@ -39,15 +39,16 @@
 						url: "/wall/scroll",
 						type: "post",
 						data: { offset:pageOffsetId, action:'scroll' },
-						success: function(data){
-							$(".container_scroll").append( data ).fadeIn();
-							scroll = true;
+						success: function( data ){
+							if( data.length > 2 ){
+								$(".container_scroll").append( data ).fadeIn();
+								scroll = true;
+							}
 						},
 						error:function(){
 							$(".container_scroll").append('Error Occurred while fetching data.');
 						}
 					} )
-
 				}
 			});
     	})

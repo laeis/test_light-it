@@ -6,13 +6,16 @@ class Controller_Main extends Controller {
 	public $data;
 
 	private $db_user;
+	private $db_message;
 
 	private static $controller_main = null;
 
 	function __construct() {
 		parent::__construct();
 		$this->db_user = new Db_User();
-
+		$this->db_message = new Db_Message();
+		if( DEMO_UPLOAD )
+			$this->db_demo_insert();
 	}
 
 	public function action_index() {
@@ -34,7 +37,7 @@ class Controller_Main extends Controller {
 					// access token from $_SESSION['access_token']
 				}
 			}
-			$this->data = $this->path;
+			$this->data['path'] = $this->get_path();
 			$this->view->generate( 'header.php' );
 			$this->view->generate( 'register.php', 'login_button.php', $this->data );
 			$this->view->generate( 'footer.php' );
@@ -46,9 +49,10 @@ class Controller_Main extends Controller {
 
 	public function action_logout() {
 		if( isset( $_GET['action'] ) && ! empty( $_SESSION['access_token'] ) ) {
-			if( 'logout' == $_GET['action'] ) 
+			if( 'logout' == $_GET['action'] ) {
 				unset( $_SESSION['access_token'], $_SESSION['author_id'],  $_SESSION['author_name'] );
 				header( 'Location: /' );
+			}
 		}
 	}
 
@@ -106,15 +110,48 @@ class Controller_Main extends Controller {
 		}
 	}
 
+	public function db_demo_insert(){
+		$text_lore = "Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).";
+		$result_user = $this->db_user->db_get_user( 1 );
+		$message = array();
+		if( empty( $result_user ) ) {
+			$user_data = $this->db_user->db_insert_user( 1, 'test' );
+			if( !empty( $user_data ) ){
+				$user_id = $user_data['user_id'];
+			}
+		} else {
+			$user_id =$result_user['user_id'];
+		}
+		$result = $this->db_message->db_get_messages();
+		$count = count( $result );
+		while( 50 > $count ){
+			if( $count == 49 ){
+				$result = $this->db_message->db_get_messages();
+				$count = count( $result );
+			}
+			$parent_id = '';
+			$text = substr( $text_lore, rand( 0, strlen( $text_lore )-1 ), -1 );
+			$count ++;
+			if( rand( 0 , 10) > 1 ) {
+				$message_data = $this->db_message->db_get_messages_id();
+				if( ! empty( $message_data ) && is_array( $message_data ) ){
+					foreach( $message_data as $messages) {
+						$message[]  =  $messages['message_id'];	
+					}
+				}
+				$rand_keys = array_rand( $message, 1 );
+				$parent_id = $message[$rand_keys];
+			}
+			if( !empty( $text ) )
+				$this->db_message->db_insert_messages( $text, $user_id, $parent_id );
+		}
+	}
+
 	public static function getInstance() {
 		if ( self:: $controller_main == null ) {
 			self::$controller_main = new Controller_Main();
 		}
 		return self::$controller_main;
-	}
-
-	public function print_register_content_sestion(){
-		
 	}
 
 }

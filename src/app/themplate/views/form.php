@@ -3,7 +3,7 @@
 	 	<span class="float-left">Добро пожаловать: <?php echo !empty( $_SESSION['author_name'] ) ? $_SESSION['author_name'] : 'Гость'; ?> </span>
 	</div>
 	<div class="col-xs-6 col-md-6">
-		<a class="float-right" href="/logout?action=logout" > Выйти </a> 
+		<a class="float-right" href="/main/logout?action=logout" > Выйти </a> 
 	</div>
 </div>
 

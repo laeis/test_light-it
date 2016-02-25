@@ -15,7 +15,6 @@ class Controller_Wall extends Controller {
 	}
 
 	public function action_index() {
-		$page = isset( $_GET['page'] ) ? intval( $_GET['page'] ) : '';
 		if ( isset( $_POST['send-message'] ) && !empty( $_SESSION['access_token'] ) ){
 			$message_text = !empty( $_POST['text-message'] ) ? trim( htmlspecialchars( strip_tags( $_POST['text-message'] ) ) ) : '';
 			
@@ -35,23 +34,32 @@ class Controller_Wall extends Controller {
 			}
 		}
 
-		$this->data['path'] = $this->path;
+		$this->data['path'] = $this->get_path();
 		$this->data['self'] = $this;
 		$this->view->generate( 'header.php' );
 		$this->view->generate( 'content.php', array( 'login_button.php', 'form.php' ), $this->data );
 		$this->view->generate( 'footer.php' );
 
-		//print_content( $path, $page );
+	}
+
+	public function action_scroll() {
+		if ( isset( $_POST['action'] ) && 'scroll' == $_POST['action'] ) {
+			$offset = isset( $_POST['offset'] ) ? intval( $_POST['offset'] ) : '';
+			$response = $this->print_message_wall( false, $offset, LIMIT );
+			if( ! empty( $response ) ){
+				return $response;
+			}
+		} else {
+			Core::error_page404();
+		}
 	}
 
 	public function print_message_wall( $messages_id =false, $offset=false, $limit=false ) {
-		$messages_child_id = array();
 		if( is_array( $messages_id ) ){
 			$messages_data = $messages_id;
 		} else {
 			$messages_data = $this->db_message->db_get_messages( $messages_id , false, $offset, $limit );
 		}
-		$all_messages = array();
 		if( !empty( $messages_data ) ) { 
 			foreach ( $messages_data as $message ) {
 				$messages_child = $this->db_message->db_get_messages( $message['message_id'] );
@@ -60,7 +68,7 @@ class Controller_Wall extends Controller {
 				$this->data['self'] = $this;
 				$this->view->generate( 'message.php', false, $this->data );
 			}
-		}	
+		}
 	}
 	
 	public function print_messages_text( $messages_id ){
@@ -68,6 +76,7 @@ class Controller_Wall extends Controller {
 		return $this->db_message->db_get_messages_text( $messages_id );
 
 	}
+
 
 
 	public static function getInstance() {

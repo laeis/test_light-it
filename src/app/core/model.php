@@ -56,7 +56,8 @@ class Model
 	public function get_mysqli() {
 		return $this->mysqli;
 	}
-	
+
+
 	public static function getDB() {
 		if ( self::$db == null ) {
 			self::$db = new Model();
